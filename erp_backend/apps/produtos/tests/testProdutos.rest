@@ -1,0 +1,68 @@
+### Necessário para pegar o token
+### Post
+# @name loginAutenticado
+POST http://localhost:40000/Login HTTP/1.1
+content-type: application/json
+
+{    
+    "username": "qwe",
+    "password": "qwe"
+}
+
+### Seta o token
+@accessToken = {{loginAutenticado.response.body.$.token}}
+
+### teste de inserção de produto
+POST http://localhost:40000/insertProdutos HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{    
+    "id_produto": 0,
+    "nome": "Notebook Gamer",
+    "descricao": "Notebook com placa de vídeo dedicada",
+    "preco": 4500.00,
+    "estoque_atual": 10,
+    "ativo": true
+}
+
+### teste de buscar todos os produtos
+GET http://localhost:40000/getAllProdutos HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{    
+    
+}
+
+### teste de buscar produto por ID
+POST http://localhost:40000/getProdutoByID HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{    
+    "id_produto": 1
+}
+
+### teste de atualização de produto
+POST http://localhost:40000/updateProdutos HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{    
+    "id_produto": 1,
+    "nome": "Notebook Gamer Pro",
+    "descricao": "Notebook com placa de vídeo dedicada e 32GB RAM",
+    "preco": 5200.50,
+    "estoque_atual": 8,
+    "ativo": true
+}
+
+### teste de remoção lógica de produto
+POST http://localhost:40000/deleteProdutos HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{    
+    "id_produto": 1
+}

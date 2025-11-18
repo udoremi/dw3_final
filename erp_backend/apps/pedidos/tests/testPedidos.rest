@@ -1,0 +1,68 @@
+### Necessário para pegar o token
+### Post
+# @name loginAutenticado
+POST http://localhost:40000/Login HTTP/1.1
+content-type: application/json
+
+{    
+    "username": "qwe",
+    "password": "qwe"
+}
+
+### Seta o token
+@accessToken = {{loginAutenticado.response.body.$.token}}
+
+### teste de inserção de pedido
+POST http://localhost:40000/insertPedidos HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{    
+    "id_pedido": 0,
+    "id_cliente": 1,
+    "data_pedido": "2023-11-15",
+    "status": "Pendente",
+    "valor_total": 150.00,
+    "observacoes": "Entregar no período da tarde"
+}
+
+### teste de buscar todos os pedidos
+GET http://localhost:40000/getAllPedidos HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{    
+    
+}
+
+### teste de buscar pedido por ID
+POST http://localhost:40000/getPedidoByID HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{    
+    "id_pedido": 1
+}
+
+### teste de atualização de pedido
+POST http://localhost:40000/updatePedidos HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{    
+    "id_pedido": 1,
+    "id_cliente": 1,
+    "data_pedido": "2023-11-15",
+    "status": "Aprovado",
+    "valor_total": 150.00,
+    "observacoes": "Pagamento confirmado"
+}
+
+### teste de cancelamento de pedido (Delete Lógico)
+POST http://localhost:40000/deletePedidos HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{    
+    "id_pedido": 1
+}
