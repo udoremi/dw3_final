@@ -14,8 +14,7 @@ export default function DashboardPage() {
         </p>
       </div>
     
-      {/* Cards de Estatísticas (KPIs) */}
-      {/* Estes dados batem 100% com suas tabelas 'pedidos' e 'clientes' */}
+      {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard 
           title="Receita Total"
@@ -42,7 +41,6 @@ export default function DashboardPage() {
       {/* Área de Gráficos */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         
-        {/* Gráfico 1 - Alterado para refletir a coluna 'status' da tabela 'pedidos' */}
         <div className="w-full rounded-lg border border-border bg-card p-6 shadow-sm">
           <h3 className="text-xl font-bold text-foreground">Status dos Pedidos</h3>
           <p className="text-sm text-muted-foreground mb-4">
@@ -54,7 +52,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Gráfico 2 - Mantido, pois reflete 'data_pedido' e 'valor_total' */}
         <div className="w-full rounded-lg border border-border bg-card p-6 shadow-sm">
           <h3 className="text-xl font-bold text-foreground">Faturamento (Últimos 7 dias)</h3>
           <p className="text-sm text-muted-foreground mb-4">Comparativo diário de receita.</p>
