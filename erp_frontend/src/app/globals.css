@@ -1,26 +1,78 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FFFFFF;
+  --foreground: #1F2328; /* Preto suave */
+  
+  --card: #F6F8FA;           /* Cinza super claro */
+  --border: #D0D7DE;         /* Borda cinza */
+  --muted-foreground: #656D76; /* Texto secundário */
+  
+  --primary: #58A6FF;            /* Azul elétrico */
+  --primary-foreground: #FFFFFF; /* Texto BRANCO sobre o acento */
+
+  --success: #22863a;
+  --danger: #cb2431;
+  --warning: #f0883e;
+
+  --radius: 0.5rem;
 }
 
 @theme inline {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Cores base */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Cores de UI (para componentes) */
+  --color-card: var(--card);
+  --color-card-foreground: var(--foreground);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-input: var(--border);
+  
+  /* Cores de Acento */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  /* Cores Secundárias e Mutadas */
+  --color-muted: var(--card);
+  --color-muted-foreground: var(--muted-foreground);
+  
+  /* Cores Semânticas (Status) */
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+
+  /* Raio da Borda */
+  --radius: var(--radius);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0D1117;
+    --foreground: #E6EDF3; /* Branco suave */
+    
+    --card: #161B22;           /* Azul-escuro */
+    --border: #30363D;         /* Borda escura */
+    --muted-foreground: #8B949E; /* Texto secundário */
+    
+    --primary: #58A6FF;            /* Azul elétrico */
+    --primary-foreground: #0D1117; /* Texto PRETO sobre o acento */
+
+    --success: #3FB950;
+    --danger: #F85149;
+    --warning: #F0883E;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-feature-settings: "rlig" 1, "calt" 1; 
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
