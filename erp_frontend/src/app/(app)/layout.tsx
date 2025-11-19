@@ -1,4 +1,5 @@
 import { Sidebar } from '@/components/layout/Sidebar';
+import { Header } from '@/components/layout/Header';
 
 export default function AppLayout({
   children,
@@ -10,7 +11,7 @@ export default function AppLayout({
       <Sidebar />
 
       <div className="flex flex-1 flex-col lg:pl-64">
-        {/* <Header /> */}
+        <Header />
         
         <main className="flex-1 p-6">
           {children}
