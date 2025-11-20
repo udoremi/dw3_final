@@ -14,7 +14,6 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      // Simulação de API call
       await new Promise((resolve) => setTimeout(resolve, 2000));
       console.log("Login no BGMERP realizado");
       router.push('/dashboard'); 
@@ -25,7 +24,6 @@ export default function LoginForm() {
     }
   }
 
-  // Classes reutilizáveis para manter consistência
   const inputWrapperClasses = "relative group";
   const iconClasses = "absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-blue-500";
   
@@ -49,8 +47,6 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-[400px] space-y-6 rounded-2xl border border-slate-800 bg-slate-900/50 p-8 shadow-2xl backdrop-blur-sm">
-      
-      {/* Cabeçalho / Logo */}
       <div className="flex flex-col items-center text-center space-y-2 mb-2">
         <div className="flex items-center gap-3 mb-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500 ring-1 ring-blue-500/20">
@@ -67,8 +63,6 @@ export default function LoginForm() {
 
       {/* Formulário */}
       <form onSubmit={onSubmit} className="space-y-4">
-        
-        {/* Input EMAIL */}
         <div className={inputWrapperClasses}>
           <Mail className={iconClasses} />
           <input
@@ -82,8 +76,6 @@ export default function LoginForm() {
             autoComplete="email"
           />
         </div>
-
-        {/* Input SENHA */}
         <div className={inputWrapperClasses}>
           <Lock className={iconClasses} />
           <input
@@ -93,7 +85,7 @@ export default function LoginForm() {
             placeholder="Sua senha segura"
             required
             disabled={isLoading}
-            className={`${inputClasses} pr-10`} // Padding extra na direita para o ícone do olho
+            className={`${inputClasses} pr-10`}
             autoComplete="current-password"
           />
           
@@ -112,14 +104,12 @@ export default function LoginForm() {
           </button>
         </div>
 
-        {/* Links Auxiliares (Opcional) */}
         <div className="flex items-center justify-end">
           <a href="#" className="text-xs font-medium text-slate-400 hover:text-blue-400 transition-colors">
             Esqueceu a senha?
           </a>
         </div>
 
-        {/* Botão de Ação */}
         <button 
           type="submit" 
           className={buttonClasses}
@@ -139,7 +129,6 @@ export default function LoginForm() {
         </button>
       </form>
 
-      {/* Rodapé do Card */}
       <div className="text-center">
         <p className="text-xs text-slate-500">
           Protegido por BGM Security © 2025
