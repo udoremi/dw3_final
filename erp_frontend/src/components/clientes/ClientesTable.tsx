@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Pencil, Trash2 } from 'lucide-react'; // Ícones mais claros
+import { Pencil, Trash2 } from 'lucide-react'; 
 
 // Tipagem
 interface Cliente {
@@ -84,7 +84,7 @@ export function ClientesTable() {
                   <StatusBadge ativo={cliente.ativo} />
                 </td>
                 
-                {/* AÇÕES (Sempre visíveis agora) */}
+                {/* AÇÕES */}
                 <td className="px-4 py-3 align-middle text-right">
                   <div className="flex items-center justify-end gap-2">
                     
