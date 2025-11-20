@@ -25,13 +25,20 @@ const insertClientes = async (clienteREGPar) => {
   try {
     linhasAfetadas = (
       await db.query(
-        "INSERT INTO clientes " + "values(default, $1, $2, $3, $4, $5, $6, $7)",
+        "INSERT INTO clientes " +
+          "values(default, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
         [
           clienteREGPar.nome_completo,
           clienteREGPar.email,
           clienteREGPar.cpf_cnpj,
           clienteREGPar.telefone,
-          clienteREGPar.endereco,
+          clienteREGPar.logradouro,
+          clienteREGPar.numero,
+          clienteREGPar.complemento,
+          clienteREGPar.bairro,
+          clienteREGPar.cidade,
+          clienteREGPar.uf,
+          clienteREGPar.cep,
           clienteREGPar.data_cadastro,
           clienteREGPar.ativo,
         ]
@@ -56,9 +63,15 @@ const updateClientes = async (clienteREGPar) => {
           "email = $3, " +
           "cpf_cnpj = $4, " +
           "telefone = $5, " +
-          "endereco = $6, " +
-          "data_cadastro = $7, " +
-          "ativo = $8 " +
+          "logradouro = $6, " +
+          "numero = $7, " +
+          "complemento = $8, " +
+          "bairro = $9, " +
+          "cidade = $10, " +
+          "uf = $11, " +
+          "cep = $12, " +
+          "data_cadastro = $13, " +
+          "ativo = $14 " +
           "WHERE id_cliente = $1",
         [
           clienteREGPar.id_cliente,
@@ -66,7 +79,13 @@ const updateClientes = async (clienteREGPar) => {
           clienteREGPar.email,
           clienteREGPar.cpf_cnpj,
           clienteREGPar.telefone,
-          clienteREGPar.endereco,
+          clienteREGPar.logradouro,
+          clienteREGPar.numero,
+          clienteREGPar.complemento,
+          clienteREGPar.bairro,
+          clienteREGPar.cidade,
+          clienteREGPar.uf,
+          clienteREGPar.cep,
           clienteREGPar.data_cadastro,
           clienteREGPar.ativo,
         ]
@@ -83,20 +102,20 @@ const updateClientes = async (clienteREGPar) => {
 const deleteClientes = async (clienteREGPar) => {
   let linhasAfetadas;
   let msg = "ok";
-    
+
   try {
     linhasAfetadas = (
-    await db.query(
-      "UPDATE clientes SET " + "ativo = false " + "WHERE id_cliente = $1",
-      [clienteREGPar.id_cliente]
-    )
-  ).rowCount;
-} catch (error) {
-  msg = "[mdlClientes|deleteClientes] " + error.detail;
-  linhasAfetadas = -1;
-}
+      await db.query(
+        "UPDATE clientes SET " + "ativo = false " + "WHERE id_cliente = $1",
+        [clienteREGPar.id_cliente]
+      )
+    ).rowCount;
+  } catch (error) {
+    msg = "[mdlClientes|deleteClientes] " + error.detail;
+    linhasAfetadas = -1;
+  }
 
-return { msg, linhasAfetadas };
+  return { msg, linhasAfetadas };
 };
 
 module.exports = {

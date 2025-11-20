@@ -4,7 +4,13 @@ CREATE TABLE clientes (
     email VARCHAR(100),
     cpf_cnpj VARCHAR(20) UNIQUE,
     telefone VARCHAR(20),
-    endereco TEXT,
+    logradouro VARCHAR(100),
+    numero VARCHAR(20),
+    complemento VARCHAR(50),
+    bairro VARCHAR(50),
+    cidade VARCHAR(50),
+    uf VARCHAR(30),
+    cep VARCHAR(15),
     data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ativo BOOLEAN DEFAULT TRUE
 );
