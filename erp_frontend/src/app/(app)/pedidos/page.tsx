@@ -48,7 +48,6 @@ export default function PedidosPage() {
 
       </div>
 
-      {/* Tabela */}
       <PedidosTable />
       
     </div>
