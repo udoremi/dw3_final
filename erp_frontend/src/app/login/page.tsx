@@ -91,26 +91,6 @@ export default function LoginForm() {
           </div>
         </div>
 
-        {/* Checkbox e Recuperação */}
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
-            <input 
-              type="checkbox" 
-              id="remember" 
-              className="h-4 w-4 rounded border-slate-700 bg-slate-950 text-blue-600 focus:ring-offset-slate-900" 
-            />
-            <label htmlFor="remember" className="text-slate-400 cursor-pointer select-none hover:text-slate-300 transition-colors">
-              Lembrar-me
-            </label>
-          </div>
-          <Link
-            href="/recuperar-senha"
-            className="font-medium text-blue-500 hover:text-blue-400 hover:underline underline-offset-4 transition-colors"
-          >
-            Esqueceu a senha?
-          </Link>
-        </div>
-
         {/* Botão de Ação */}
         <button 
           type="submit" 
@@ -130,14 +110,6 @@ export default function LoginForm() {
           )}
         </button>
       </form>
-
-      {/* Rodapé */}
-      <div className="text-center text-sm text-slate-500">
-        Não possui acesso?{' '}
-        <Link href="/cadastro" className="font-medium text-blue-500 hover:text-blue-400 transition-colors">
-          Solicitar conta
-        </Link>
-      </div>
     </div>
   );
 }
