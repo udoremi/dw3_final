@@ -25,18 +25,14 @@ export default function LoginForm() {
     }
   }
 
-  // Estilos extraídos para limpar o JSX (Foco no tema Dark/Slate)
   const inputClasses = "flex h-11 w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all";
   
-  // Botão Branco para contraste alto (igual ao print)
   const buttonClasses = "inline-flex h-11 w-full items-center justify-center rounded-md bg-white px-8 text-sm font-bold text-slate-950 shadow hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-300 disabled:pointer-events-none disabled:opacity-50 transition-colors";
 
   return (
     <div className="w-full max-w-[400px] space-y-8 rounded-xl border border-slate-800 bg-slate-900 p-10 shadow-2xl">
       
-      {/* Cabeçalho / Logo */}
       <div className="flex flex-col items-center justify-center space-y-4 text-center">
-        {/* Ícone simulando a logo azul do print */}
         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600 text-white shadow-lg shadow-blue-900/20">
           <LayoutDashboard className="h-6 w-6" />
         </div>
@@ -54,7 +50,6 @@ export default function LoginForm() {
       <form onSubmit={onSubmit} className="space-y-5">
         <div className="space-y-4">
           
-          {/* Input E-MAIL */}
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
