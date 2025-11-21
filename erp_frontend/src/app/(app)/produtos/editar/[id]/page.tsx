@@ -31,7 +31,6 @@ export default function EditarProdutoPage() {
       try {
         await new Promise(resolve => setTimeout(resolve, 1000)); 
         
-        // Dados simulados
         const produtoDoBanco = {
           id: id,
           nome: 'Teclado Mecânico RGB',
@@ -118,7 +117,7 @@ export default function EditarProdutoPage() {
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-8">
           
-          {/* Campos */}
+          {/* Campos do Formulário */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 border-b border-border pb-2 mb-4">
               <Package className="h-5 w-5 text-primary" />
@@ -167,13 +166,42 @@ export default function EditarProdutoPage() {
             <Input id="descricao" value={descricao} onChange={(e) => setDescricao(e.target.value)} className="h-20" />
           </div>
 
-          {/* --- AÇÕES (BOTÕES REORGANIZADOS) --- */}
-          <div className="flex flex-col items-center justify-between gap-4 pt-6 border-t border-border mt-8 md:flex-row">
-                {/* Botão Salvar*/}
+          <div className="flex flex-col-reverse items-center justify-between gap-4 pt-6 border-t border-border mt-8 md:flex-row">
+             
+             <Button 
+                type="button" 
+                className="w-full md:w-auto bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white border-transparent transition-all font-medium"
+                onClick={() => confirm("Tem certeza que deseja apagar este registro?") && console.log("Excluindo...")}
+             >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Excluir Produto
+             </Button>
+
+             <div className="flex flex-col-reverse w-full gap-4 md:w-auto md:flex-row md:items-center">
+                
+                {/* Cancelar */}
+                <Link href="/produtos" className="w-full md:w-auto">
+                    <Button 
+                        type="button" 
+                        className="
+                        w-full md:w-auto 
+                        bg-background 
+                        border-input 
+                        text-muted-foreground
+                        hover:bg-muted 
+                        hover:text-foreground
+                        font-medium
+                        "
+                    >
+                        Cancelar
+                    </Button>
+                </Link>
+                
+                {/* Salvar */}
                 <Button 
                   type="submit" 
                   disabled={isSaving}
-                  className="w-full md:min-w-[200px] font-semibold shadow-md"
+                  className="w-full md:min-w-[180px] font-semibold shadow-sm"
                 >
                   {isSaving ? (
                     <>
@@ -187,36 +215,7 @@ export default function EditarProdutoPage() {
                     </>
                   )}
                 </Button>
-             
-             
-
-             {/* DIREITA: Cancelar e deletar*/}
-             <div className="flex flex-col w-full gap-4 md:w-auto md:flex-row md:items-center">
-                <Link href="/produtos" className="w-full md:w-auto">
-                    <Button 
-                        type="button" 
-                        className="
-                        w-full md:w-auto 
-                        bg-transparent          /* Fundo transparente */
-                        border border-transparent 
-                        text-slate-600          /* Texto cinza escuro */
-                        hover:bg-slate-100      /* Fundo cinza claro ao passar o mouse */
-                        hover:text-slate-900
-                        "
-                    >
-                        Cancelar
-                    </Button>
-                </Link>
-                
             </div>
-             <Button 
-                type="button" 
-                className="w-full md:w-auto bg-red-600 text-white hover:bg-red-700 border-transparent"
-                onClick={() => confirm("Tem certeza que deseja apagar este registro?") && console.log("Excluindo...")}
-             >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Excluir Produto
-             </Button>
           </div>
 
         </form>
