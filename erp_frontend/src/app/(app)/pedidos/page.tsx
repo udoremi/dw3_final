@@ -9,9 +9,28 @@ import { FilterModal } from '@/components/ui/FilterModal';
 import { Label } from '@/components/ui/Label';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { CancelModal } from '@/components/pedidos/CancelModal';
 
 export default function PedidosPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const [isCancelOpen, setIsCancelOpen] = useState(false);
+  const [pedidoParaCancelar, setPedidoParaCancelar] = useState<any>(null);
+  const [isLoadingCancel, setIsLoadingCancel] = useState(false);
+
+  const handleOpenCancelModal = (pedido: any) => {
+    setPedidoParaCancelar(pedido);
+    setIsCancelOpen(true);
+  };
+
+  const handleConfirmCancel = async (motivo: string) => {
+    setIsLoadingCancel(true);
+    console.log(`Cancelando pedido #${pedidoParaCancelar.id}. Motivo: ${motivo}`);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoadingCancel(false);
+    setIsCancelOpen(false);
+    setPedidoParaCancelar(null);
+  };
 
   const handleApplyFilters = () => {
     console.log("Filtros de pedidos aplicados!");
@@ -58,6 +77,14 @@ export default function PedidosPage() {
         </div>
       </FilterModal>
 
+      <CancelModal
+        isOpen={isCancelOpen}
+        onClose={() => setIsCancelOpen(false)}
+        onConfirm={handleConfirmCancel}
+        pedidoId={pedidoParaCancelar?.id}
+        isLoading={isLoadingCancel}
+      />
+
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -102,7 +129,7 @@ export default function PedidosPage() {
       </div>
 
       {/* Tabela */}
-      <PedidosTable />
+      <PedidosTable onCancel={handleOpenCancelModal} />
       
     </div>
   );

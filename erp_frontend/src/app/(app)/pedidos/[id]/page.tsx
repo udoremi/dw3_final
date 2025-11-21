@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Printer, Pencil, Ban, Calendar, User, FileText, CreditCard, Loader2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Ban, Calendar, User, FileText, CreditCard, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CancelModal } from '@/components/pedidos/CancelModal';
 
@@ -12,7 +12,6 @@ const formatMoney = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'cu
 const formatDate = (dateStr: string) => new Date(dateStr).toLocaleString('pt-BR');
 
 // --- COMPONENTES VISUAIS ---
-// Badge de Status (Reutilizado)
 function StatusBadge({ status }: { status: string }) {
   const styles = {
     Pendente: 'bg-yellow-500/15 text-yellow-500 border-yellow-500/20',
@@ -37,16 +36,13 @@ export default function VerPedidoPage() {
   const [isCanceling, setIsCanceling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   
-  // Estado dos dados
   const [pedido, setPedido] = useState<any>(null);
 
-  // 1. Carregar Dados
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       await new Promise(resolve => setTimeout(resolve, 800)); // Simula API
 
-      // Mock de Dados
       const mockDB = {
         id: id,
         cliente: {
@@ -73,17 +69,14 @@ export default function VerPedidoPage() {
     loadData();
   }, [id]);
 
-  // 2. Ação de Cancelar
   const handleCancel = async (motivo: string) => {
     setIsCanceling(true);
     console.log(`Cancelando pedido ${id}. Motivo: ${motivo}`);
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simula processamento
-    
-    // Atualiza estado local ou redireciona
+    await new Promise(resolve => setTimeout(resolve, 1500));
     setIsCanceling(false);
     setShowCancelModal(false);
     alert("Pedido cancelado com sucesso!");
-    router.refresh(); // ou atualiza o estado do pedido para "Cancelado"
+    router.refresh();
   };
 
   if (isLoading || !pedido) {
@@ -107,7 +100,6 @@ export default function VerPedidoPage() {
         isLoading={isCanceling}
       />
 
-      {/* --- HEADER DA PÁGINA --- */}
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center border-b border-border pb-6">
         <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
@@ -153,10 +145,7 @@ export default function VerPedidoPage() {
 
       {/* --- CONTEÚDO PRINCIPAL (GRID) --- */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        
-        {/* COLUNA ESQUERDA (2/3): Itens e Observações */}
         <div className="lg:col-span-2 space-y-6">
-            
             {/* Tabela de Itens */}
             <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
                 <div className="border-b border-border bg-muted/30 px-6 py-4">
@@ -205,9 +194,7 @@ export default function VerPedidoPage() {
             </div>
         </div>
 
-        {/* COLUNA DIREITA (1/3): Cliente e Infos */}
         <div className="space-y-6">
-            
             {/* Card Cliente */}
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
                 <div className="flex items-center gap-2 border-b border-border pb-3">
@@ -235,7 +222,7 @@ export default function VerPedidoPage() {
                 </div>
             </div>
 
-            {/* Card Financeiro (Resumo) */}
+            {/* Card Financeiro */}
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
                 <div className="flex items-center gap-2 border-b border-border pb-3">
                     <CreditCard className="h-5 w-5 text-primary" />

@@ -34,7 +34,12 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export function PedidosTable() {
+// Props
+interface PedidosTableProps {
+  onCancel: (pedido: Pedido) => void;
+}
+
+export function PedidosTable({ onCancel }: PedidosTableProps) {
   const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
@@ -60,17 +65,52 @@ export function PedidosTable() {
                 <td className="px-4 py-3 align-middle text-muted-foreground">{formatDate(pedido.data)}</td>
                 <td className="px-4 py-3 align-middle font-medium text-foreground">{formatCurrency(pedido.total)}</td>
                 <td className="px-4 py-3 align-middle"><StatusBadge status={pedido.status} /></td>
-                
-                {/* NOVAS AÇÕES */}
                 <td className="px-4 py-3 align-middle text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Link href={`/pedidos/${pedido.id}`} title="Ver Detalhes" className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all">
+                  <div className="flex items-center justify-end gap-4">
+                    
+                    {/* Botão VER */}
+                    <Link 
+                      href={`/pedidos/${pedido.id}`} 
+                      title="Ver Detalhes" 
+                      className="
+                        flex h-8 w-8 items-center justify-center rounded-md border border-transparent 
+                        text-muted-foreground 
+                        hover:bg-blue-500/10 hover:text-blue-500 hover:border-blue-500/20 
+                        transition-all
+                      "
+                    >
                       <Eye className="h-4 w-4" />
                     </Link>
-                    <Link href={`/pedidos/editar/${pedido.id}`} title="Editar Pedido" className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground hover:border-border transition-all">
-                      <Pencil className="h-4 w-4" />
-                    </Link>
-                    <button onClick={() => alert('Cancelar pedido?')} title="Cancelar Pedido" className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:bg-danger/10 hover:text-danger hover:border-danger/20 transition-all">
+                    
+                    {/* Botão EDITAR */}
+                    {pedido.status === 'Pendente' && (
+                        <Link 
+                          href={`/pedidos/editar/${pedido.id}`} 
+                          title="Editar Pedido" 
+                          className="
+                            flex h-8 w-8 items-center justify-center rounded-md border border-transparent 
+                            text-muted-foreground 
+                            hover:bg-muted hover:text-foreground hover:border-border 
+                            transition-all
+                          "
+                        >
+                            <Pencil className="h-4 w-4" />
+                        </Link>
+                    )}
+
+                    {/* Botão CANCELAR */}
+                    <button 
+                      onClick={() => onCancel(pedido)} 
+                      title="Cancelar Pedido" 
+                      disabled={pedido.status === 'Cancelado' || pedido.status === 'Concluído'}
+                      className="
+                        flex h-8 w-8 items-center justify-center rounded-md border border-transparent 
+                        text-muted-foreground 
+                        hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 
+                        transition-all 
+                        disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-muted-foreground
+                      "
+                    >
                       <Ban className="h-4 w-4" />
                     </button>
                   </div>
