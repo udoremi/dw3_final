@@ -30,14 +30,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
-    setLoading(true);
     try {
         const response = await api.post('/login', {
             username: username,
             password: password,
         });
 
-        console.log("O QUE O BACKEND RESPONDEU:", response.data);
+        if (response.data.message && !response.data.token) {
+            return { success: false, message: response.data.message };
+        }
 
         const token = response.data.token;
         if (!token) throw new Error("Token não recebido do backend");
@@ -50,8 +51,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error("Falha no login", error);
         setUser(null);
         return { success: false, message: error.response?.data?.message || "Credenciais inválidas." };
-    } finally {
-        setLoading(false);
     }
   };
 

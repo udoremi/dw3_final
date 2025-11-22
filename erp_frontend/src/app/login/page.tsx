@@ -17,25 +17,23 @@ export default function LoginForm() {
     setIsLoading(true);
     setErrorMessage('');
 
-    // Captura os dados do formulário
     const formData = new FormData(event.currentTarget);
     const username = formData.get('username') as string;
     const password = formData.get('password') as string;
 
     try {
-      // Chama a função de login do AuthContext
       const result = await login(username, password);
-      
+
       if (result.success) {
-        console.log("Login no BGMERP realizado com sucesso");
+        console.log("Login sucesso");
       } else {
-        setErrorMessage(result.message || "Erro ao autenticar. Verifique suas credenciais.");
-        setIsLoading(false);
+          setErrorMessage(result.message || "Erro ao autenticar. Verifique suas credenciais.");
+          setIsLoading(false);
       }
     } catch (error) {
-      console.error('Erro inesperado no login:', error);
-      setErrorMessage("Ocorreu um erro inesperado. Tente novamente.");
-      setIsLoading(false);
+        console.error('Erro crítico:', error);
+        setErrorMessage("Erro de conexão com o servidor.");
+        setIsLoading(false);
     }
   }
 
