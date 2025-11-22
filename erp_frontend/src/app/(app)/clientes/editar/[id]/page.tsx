@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
+import api from '../../../../../../services/api';
 
-// Interfaces IBGE
 interface IBGEUF { id: number; sigla: string; nome: string; }
 interface IBGEMunicipio { id: number; nome: string; }
 
@@ -18,7 +18,7 @@ export default function EditarClientePage() {
   const router = useRouter();
   const id = params.id;
 
-  // --- ESTADOS ---
+  // Estados
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -28,7 +28,9 @@ export default function EditarClientePage() {
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [ativo, setAtivo] = useState('true');
+  const [dataCadastro, setDataCadastro] = useState('');
 
+  // Endereço
   const [cep, setCep] = useState('');
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
@@ -49,51 +51,42 @@ export default function EditarClientePage() {
         const dataUfs = await resUfs.json();
         setUfs(dataUfs);
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const response = await api.post('/getClienteByID', { id_cliente: id });
+        
+        if (response.data.status === "ok" && response.data.registro.length > 0) {
+            const clienteDB = response.data.registro[0];
 
-        const clienteDB = {
-          id: id,
-          nome: 'João da Silva',
-          tipo: 'fisica',
-          documento: '123.456.789-00',
-          email: 'joao.silva@gmail.com',
-          telefone: '(11) 99999-8888',
-          ativo: true,
-          endereco: {
-            cep: '01310-100',
-            logradouro: 'Av. Paulista',
-            numero: '1000',
-            complemento: 'Apto 42',
-            bairro: 'Bela Vista',
-            uf: 'SP',
-            cidade: 'São Paulo'
-          }
-        };
+            setNome(clienteDB.nome_completo);
+            setTipoPessoa(clienteDB.cpf_cnpj.length > 14 ? 'juridica' : 'fisica');
+            setDocumento(clienteDB.cpf_cnpj);
+            setEmail(clienteDB.email);
+            setTelefone(clienteDB.telefone);
+            setAtivo(clienteDB.ativo ? 'true' : 'false');
+            setDataCadastro(clienteDB.data_cadastro);
 
-        setNome(clienteDB.nome);
-        setTipoPessoa(clienteDB.tipo as 'fisica' | 'juridica');
-        setDocumento(clienteDB.documento);
-        setEmail(clienteDB.email);
-        setTelefone(clienteDB.telefone);
-        setAtivo(clienteDB.ativo ? 'true' : 'false');
-        setCep(clienteDB.endereco.cep);
-        setLogradouro(clienteDB.endereco.logradouro);
-        setNumero(clienteDB.endereco.numero);
-        setComplemento(clienteDB.endereco.complemento);
-        setBairro(clienteDB.endereco.bairro);
-        setSelectedUf(clienteDB.endereco.uf);
-        setSelectedCidade(clienteDB.endereco.cidade);
+            // Endereço
+            setCep(clienteDB.cep);
+            setLogradouro(clienteDB.logradouro);
+            setNumero(clienteDB.numero);
+            setComplemento(clienteDB.complemento);
+            setBairro(clienteDB.bairro);
+            setSelectedUf(clienteDB.uf);
+            setSelectedCidade(clienteDB.cidade);
+        } else {
+            alert("Cliente não encontrado");
+            router.push('/clientes');
+        }
 
       } catch (error) {
         console.error("Erro ao carregar", error);
-        router.push('/clientes');
       } finally {
         setIsLoading(false);
       }
     };
-    init();
+    if (id) init();
   }, [id, router]);
 
+  // CIDADES
   useEffect(() => {
     if (!selectedUf) { setCidades([]); return; }
     const loadCidades = async () => {
@@ -123,23 +116,59 @@ export default function EditarClientePage() {
     setCep(value);
   };
 
-  // Submit
+  // UPDATE
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("Cliente Atualizado!");
-    setIsSaving(false);
-    router.push('/clientes');
+
+    const payload = {
+        id_cliente: id,
+        nome_completo: nome,
+        email: email,
+        cpf_cnpj: documento,
+        telefone: telefone,
+        logradouro: logradouro,
+        numero: numero,
+        complemento: complemento,
+        bairro: bairro,
+        cidade: selectedCidade,
+        uf: selectedUf,
+        cep: cep,
+        data_cadastro: dataCadastro,
+        ativo: ativo === 'true'
+    };
+
+    try {
+        const response = await api.post('/updateClientes', payload);
+        if(response.data.status === "ok") {
+            alert("Cliente Atualizado!");
+            router.push('/clientes');
+        } else {
+            alert("Erro ao atualizar: " + response.data.status);
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Erro de conexão.");
+    } finally {
+        setIsSaving(false);
+    }
   }
 
+  // DELETAR DA TELA DE EDIÇÃO
+  const handleDelete = async () => {
+    if(!confirm("Tem certeza que deseja apagar?")) return;
+    try {
+        const response = await api.post('/deleteClientes', { id_cliente: id });
+        if(response.data.status === "ok") {
+            router.push('/clientes');
+        } else {
+            alert("Erro ao excluir.");
+        }
+    } catch(e) { alert("Erro ao excluir"); }
+  };
+
   if (isLoading) {
-    return (
-      <div className="flex h-[50vh] w-full items-center justify-center flex-col gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground">Carregando dados do cliente...</p>
-      </div>
-    );
+    return <div className="flex h-[50vh] justify-center items-center"><Loader2 className="animate-spin h-10 w-10 text-primary" /></div>;
   }
 
   return (
