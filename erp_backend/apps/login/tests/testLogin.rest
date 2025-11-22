@@ -1,5 +1,5 @@
 ### teste de login
-POST http://localhost:40000/Login HTTP/1.1
+POST http://localhost:40000/login HTTP/1.1
 content-type: application/json
 //Authorization: Bearer eyJhbGciOiJIUzI
 

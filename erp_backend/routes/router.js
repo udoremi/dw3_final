@@ -5,6 +5,7 @@ const appLogin = require("../apps/login/controller/ctlLogin");
 const appClientes = require("../apps/clientes/controller/ctlClientes");
 const appPedidos = require("../apps/pedidos/controller/ctlPedidos");
 const appProdutos = require("../apps/produtos/controller/ctlProdutos");
+const appDashboard = require("../apps/dashboard/controller/ctlDashboard");
 
 routerApp.use((req, res, next) => {
   next();
@@ -34,5 +35,8 @@ routerApp.post("/getProdutoByID", appLogin.AutenticaJWT, appProdutos.getProdutoB
 routerApp.post("/insertProdutos", appLogin.AutenticaJWT, appProdutos.insertProdutos);
 routerApp.post("/updateProdutos", appLogin.AutenticaJWT, appProdutos.updateProdutos);
 routerApp.post("/deleteProdutos", appLogin.AutenticaJWT, appProdutos.deleteProdutos);
+
+//rota da dashboard
+routerApp.get("/getDashboardMetrics", appLogin.AutenticaJWT, appDashboard.GetMetrics);
 
 module.exports = routerApp;

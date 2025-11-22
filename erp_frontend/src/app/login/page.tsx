@@ -1,25 +1,40 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation'; 
-import { Store, ArrowRight, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Store, ArrowRight, User, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
-export default function LoginForm() {
-  const router = useRouter();
+export default function LoginForm() { 
+  // Pega a função de login do contexto
+  const { login } = useAuth(); 
+  
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
+    setErrorMessage('');
+
+    // Captura os dados do formulário
+    const formData = new FormData(event.currentTarget);
+    const username = formData.get('username') as string;
+    const password = formData.get('password') as string;
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log("Login no BGMERP realizado");
-      router.push('/dashboard'); 
+      // Chama a função de login do AuthContext
+      const result = await login(username, password);
+      
+      if (result.success) {
+        console.log("Login no BGMERP realizado com sucesso");
+      } else {
+        setErrorMessage(result.message || "Erro ao autenticar. Verifique suas credenciais.");
+        setIsLoading(false);
+      }
     } catch (error) {
-      console.error('Erro ao autenticar:', error);
-    } finally {
+      console.error('Erro inesperado no login:', error);
+      setErrorMessage("Ocorreu um erro inesperado. Tente novamente.");
       setIsLoading(false);
     }
   }
@@ -61,19 +76,26 @@ export default function LoginForm() {
         </p>
       </div>
 
+      {/* Exibe mensagem de erro se houver */}
+      {errorMessage && (
+        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center">
+          {errorMessage}
+        </div>
+      )}
+
       {/* Formulário */}
       <form onSubmit={onSubmit} className="space-y-4">
         <div className={inputWrapperClasses}>
-          <Mail className={iconClasses} />
+          <User className={iconClasses} />
           <input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="usuario@empresa.com"
+            id="username"
+            name="username"
+            type="text" 
+            placeholder="Usuário"
             required
             disabled={isLoading}
             className={inputClasses}
-            autoComplete="email"
+            autoComplete="username"
           />
         </div>
         <div className={inputWrapperClasses}>
@@ -82,7 +104,7 @@ export default function LoginForm() {
             id="password"
             name="password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="Sua senha segura"
+            placeholder="Sua senha"
             required
             disabled={isLoading}
             className={`${inputClasses} pr-10`}

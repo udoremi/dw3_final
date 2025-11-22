@@ -1,11 +1,15 @@
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext"; 
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
-// Configuração da fonte
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "BGM ERP",
+  description: "Sistema de Vendas",
+};
 
 export default function RootLayout({
   children,
@@ -13,14 +17,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning={true}>
-      <body
-        className={`${inter.variable} font-sans
-                   min-h-screen bg-background text-foreground antialiased`}
-      >
-        <main className="flex flex-col w-full">
-          {children}
-        </main>
+    <html lang="pt-BR">
+      <body className={`${inter.className} bg-background text-foreground antialiased`}>
+        <AuthProvider>
+          <AuthGuard>
+            <main className="flex flex-col w-full min-h-screen">
+              {children}
+            </main>
+          </AuthGuard>
+        </AuthProvider>
       </body>
     </html>
   );
