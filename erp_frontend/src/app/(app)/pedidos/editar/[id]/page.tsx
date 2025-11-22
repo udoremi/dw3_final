@@ -3,32 +3,20 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Plus, Trash2, ShoppingCart, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, ShoppingCart, Loader2, Calendar, User, CreditCard, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
+import api from '../../../../../../services/api';
 
-const produtosMock = [
-  { id: 1, nome: 'Monitor Dell 24"', preco: 1200.00 },
-  { id: 2, nome: 'Teclado Mecânico Logitech', preco: 450.00 },
-  { id: 3, nome: 'Mouse Sem Fio', preco: 89.90 },
-  { id: 4, nome: 'Cabo HDMI 2m', preco: 25.00 },
-];
-
-const clientesMock = [
-  { id: 1, nome: 'Tech Solutions Ltda' },
-  { id: 2, nome: 'João da Silva' },
-  { id: 3, nome: 'Padaria do Zé' },
-];
-
-// Interface do Item no Pedido
-interface ItemPedido {
+// Interface do Item na memória (Carrinho)
+interface ItemCarrinho {
   id_produto: number;
   nome: string;
-  quantidade: number;
   preco_unitario: number;
+  quantidade: number;
   subtotal: number;
 }
 
@@ -37,315 +25,372 @@ export default function EditarPedidoPage() {
   const router = useRouter();
   const id = params.id;
 
-  // --- ESTADOS GERAIS ---
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // --- DADOS DO PEDIDO (HEADER) ---
+  // Dados Auxiliares (Listas para os Selects)
+  const [clientes, setClientes] = useState<any[]>([]);
+  const [produtos, setProdutos] = useState<any[]>([]);
+
+  // Header do Pedido (Estados Editáveis)
   const [clienteId, setClienteId] = useState('');
   const [status, setStatus] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [dataPedido, setDataPedido] = useState('');
-
-  // --- ITENS DO PEDIDO ---
-  const [itens, setItens] = useState<ItemPedido[]>([]);
-
-  // --- CONTROLE DE ADIÇÃO DE PRODUTOS ---
+  
+  // Itens (Carrinho)
+  const [itens, setItens] = useState<ItemCarrinho[]>([]);
+  
+  // Controle de Adição de Produto
   const [produtoSelecionadoId, setProdutoSelecionadoId] = useState('');
-  const [quantidadeAdd, setQuantidadeAdd] = useState(1);
+  const [quantidade, setQuantidade] = useState(1);
 
+  // Utils de Formatação
+  const formatMoney = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  const formatDate = (dateStr: string) => {
+      if(!dateStr) return '-';
+      const [ano, mes, dia] = dateStr.split('-');
+      return `${dia}/${mes}/${ano}`;
+  };
+
+  const getStatusColor = (st: string) => {
+    switch (st) {
+      case 'Pendente': return 'bg-yellow-500/15 text-yellow-500 border-yellow-500/20';
+      case 'Concluído': return 'bg-green-500/15 text-green-500 border-green-500/20';
+      case 'Cancelado': return 'bg-red-500/15 text-red-500 border-red-500/20';
+      case 'Processando': return 'bg-blue-500/15 text-blue-500 border-blue-500/20';
+      default: return 'bg-gray-500/15 text-gray-500 border-gray-500/20';
+    }
+  };
+
+  // 1. LOAD INICIAL
   useEffect(() => {
-    const loadData = async () => {
+    const init = async () => {
       setIsLoading(true);
       try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Carrega listas de apoio
+        const [resCli, resProd] = await Promise.all([
+            api.get('/getAllClientes'),
+            api.get('/getAllProdutos')
+        ]);
+        if(resCli.data.status === 'ok') setClientes(resCli.data.registro);
+        if(resProd.data.status === 'ok') setProdutos(resProd.data.registro);
 
-        const pedidoDB = {
-          id: id,
-          id_cliente: 1,
-          status: 'Pendente',
-          data_pedido: '2025-10-14T10:30:00',
-          observacoes: 'Entregar na recepção do prédio comercial.',
-          itens: [
-            { id_produto: 1, nome: 'Monitor Dell 24"', quantidade: 2, preco_unitario: 1200.00, subtotal: 2400.00 },
-            { id_produto: 4, nome: 'Cabo HDMI 2m', quantidade: 2, preco_unitario: 25.00, subtotal: 50.00 }
-          ]
-        };
+        // Carrega o Pedido
+        const resPed = await api.post('/getPedidoByID', { id_pedido: id });
+        
+        if(resPed.data.status === 'ok' && resPed.data.registro.length > 0) {
+            const ped = resPed.data.registro[0];
+            
+            setClienteId(ped.id_cliente.toString());
+            setStatus(ped.status);
+            setObservacoes(ped.observacoes || '');
+            setDataPedido(ped.data_pedido);
 
-        setClienteId(pedidoDB.id_cliente.toString());
-        setStatus(pedidoDB.status);
-        setObservacoes(pedidoDB.observacoes);
-        setItens(pedidoDB.itens);
-        setDataPedido(new Date(pedidoDB.data_pedido).toLocaleString('pt-BR'));
-
+            // Carrega itens se existirem
+            if (ped.itens && Array.isArray(ped.itens)) {
+                const itensFormatados = ped.itens.map((item: any) => ({
+                    id_produto: item.id_produto,
+                    nome: item.nome,
+                    preco_unitario: Number(item.preco_unitario),
+                    quantidade: Number(item.quantidade),
+                    subtotal: Number(item.preco_unitario) * Number(item.quantidade)
+                }));
+                setItens(itensFormatados);
+            }
+        } else {
+            alert("Pedido não encontrado");
+            router.push('/pedidos');
+        }
       } catch (error) {
-        console.error("Erro ao carregar pedido", error);
-        router.push('/pedidos');
+        console.error(error);
       } finally {
         setIsLoading(false);
       }
     };
-
-    if (id) loadData();
+    if(id) init();
   }, [id, router]);
-  
-  // Adicionar Produto
-  const handleAdicionarProduto = () => {
-    if (!produtoSelecionadoId) return;
 
-    const produtoOriginal = produtosMock.find(p => p.id === Number(produtoSelecionadoId));
-    if (!produtoOriginal) return;
+  // --- LÓGICA DE ITENS ---
+  const handleAddItem = () => {
+    const prod = produtos.find(p => p.id_produto == produtoSelecionadoId);
+    if(!prod) return;
 
-    const novoItem: ItemPedido = {
-      id_produto: produtoOriginal.id,
-      nome: produtoOriginal.nome,
-      quantidade: Number(quantidadeAdd),
-      preco_unitario: produtoOriginal.preco,
-      subtotal: produtoOriginal.preco * Number(quantidadeAdd)
+    const novoItem: ItemCarrinho = {
+        id_produto: prod.id_produto,
+        nome: prod.nome,
+        preco_unitario: Number(prod.preco),
+        quantidade: Number(quantidade),
+        subtotal: Number(prod.preco) * Number(quantidade)
     };
 
     setItens([...itens, novoItem]);
-    
-    // Reset inputs
     setProdutoSelecionadoId('');
-    setQuantidadeAdd(1);
+    setQuantidade(1);
   };
 
-  // Remover Item
-  const handleRemoverItem = (index: number) => {
-    const novosItens = [...itens];
-    novosItens.splice(index, 1);
-    setItens(novosItens);
+  const handleRemoveItem = (index: number) => {
+    const novos = [...itens];
+    novos.splice(index, 1);
+    setItens(novos);
   };
 
-  // Cálculos
-  const valorTotal = itens.reduce((acc, item) => acc + item.subtotal, 0);
-  const formatMoney = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  // Calcula total
+  const valorTotalCalculado = itens.reduce((acc, item) => acc + item.subtotal, 0);
 
-  // --- SUBMIT ---
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  // --- SUBMIT (Salvar) ---
+  const handleSubmit = async () => {
     setIsSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("Pedido Atualizado!", { id, clienteId, status, itens });
-    setIsSaving(false);
-    router.push('/pedidos');
-  }
+
+    const payload = {
+        id_pedido: id,
+        id_cliente: Number(clienteId),
+        data_pedido: dataPedido,
+        status: status,
+        valor_total: valorTotalCalculado,
+        observacoes: observacoes
+    };
+
+    try {
+        const response = await api.post('/updatePedidos', payload);
+        if(response.data.status === "ok") {
+            alert("Pedido Atualizado!");
+            router.push('/pedidos');
+        } else {
+            alert("Erro: " + response.data.status);
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Erro ao atualizar.");
+    } finally {
+        setIsSaving(false);
+    }
+  };
 
   if (isLoading) {
     return (
       <div className="flex h-[50vh] w-full items-center justify-center flex-col gap-4">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground">Carregando detalhes do pedido...</p>
+        <p className="text-muted-foreground">Carregando pedido...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex w-full flex-col gap-6 pb-10">
+    <div className="flex w-full flex-col gap-8 pb-10">
       
-      {/* Header */}
-      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Editar Pedido <span className="text-primary">#{id}</span>
-          </h1>
-          <p className="text-muted-foreground">
-            Criado em: {dataPedido}
-          </p>
+      {/* --- HEADER DA PÁGINA --- */}
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center border-b border-border pb-6">
+        <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                    Editar Pedido #{id}
+                </h1>
+                <span className={`px-3 py-1 rounded-full border text-sm font-semibold ${getStatusColor(status)}`}>
+                    {status}
+                </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <span>Criado em: {formatDate(dataPedido)}</span>
+            </div>
         </div>
         
-        <Link href="/pedidos">
-          <Button type="button" className="w-full md:w-auto bg-card border border-input text-foreground hover:bg-muted">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-          </Button>
-        </Link>
-      </div>
-
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-              <div className="flex items-center gap-2 border-b border-border pb-4 mb-4">
-                <ShoppingCart className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">Itens do Pedido</h2>
-              </div>
-
-              {/* Inputs de Adição */}
-              <div className="flex flex-col gap-4 md:flex-row md:items-end bg-muted/20 p-4 rounded-lg border border-border mb-6">
-                <div className="flex-1 space-y-2">
-                  <Label>Adicionar Produto</Label>
-                  <Select 
-                    value={produtoSelecionadoId} 
-                    onChange={(e) => setProdutoSelecionadoId(e.target.value)}
-                  >
-                    <option value="" disabled>Selecione...</option>
-                    {produtosMock.map(p => (
-                      <option key={p.id} value={p.id}>{p.nome} - {formatMoney(p.preco)}</option>
-                    ))}
-                  </Select>
-                </div>
-
-                <div className="w-full md:w-32 space-y-2">
-                  <Label>Qtd</Label>
-                  <Input 
-                    type="number" 
-                    min={1} 
-                    value={quantidadeAdd} 
-                    onChange={(e) => setQuantidadeAdd(Number(e.target.value))}
-                  />
-                </div>
-
-                <Button 
-                  type="button" 
-                  onClick={handleAdicionarProduto}
-                  disabled={!produtoSelecionadoId}
-                  className="w-full md:w-auto"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add
-                </Button>
-              </div>
-
-              {/* Tabela de Itens */}
-              <div className="rounded-lg border border-border overflow-hidden">
-                <table className="min-w-full table-auto text-left text-sm">
-                  <thead className="bg-muted/40 border-b border-border">
-                    <tr>
-                      <th className="px-4 py-3 font-semibold text-muted-foreground">Produto</th>
-                      <th className="px-4 py-3 font-semibold text-muted-foreground text-center">Qtd</th>
-                      <th className="px-4 py-3 font-semibold text-muted-foreground text-right">Unitário</th>
-                      <th className="px-4 py-3 font-semibold text-muted-foreground text-right">Total</th>
-                      <th className="px-4 py-3 font-semibold text-muted-foreground text-center">Ação</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border bg-card">
-                    {itens.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                          Carrinho vazio.
-                        </td>
-                      </tr>
-                    ) : (
-                      itens.map((item, index) => (
-                        <tr key={index} className="hover:bg-muted/30">
-                          <td className="px-4 py-3 text-foreground">{item.nome}</td>
-                          <td className="px-4 py-3 text-center text-foreground">{item.quantidade}</td>
-                          <td className="px-4 py-3 text-right text-muted-foreground">{formatMoney(item.preco_unitario)}</td>
-                          <td className="px-4 py-3 text-right font-medium text-foreground">{formatMoney(item.subtotal)}</td>
-                          <td className="px-4 py-3 text-center">
-                            <button 
-                              type="button"
-                              onClick={() => handleRemoverItem(index)}
-                              className="text-muted-foreground hover:text-danger transition-colors"
-                              title="Remover item"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                  <tfoot className="bg-muted/20 border-t border-border">
-                    <tr>
-                      <td colSpan={3} className="px-4 py-3 text-right font-semibold text-muted-foreground">Total do Pedido:</td>
-                      <td className="px-4 py-3 text-right font-bold text-lg text-primary">{formatMoney(valorTotal)}</td>
-                      <td></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="status">Status do Pedido</Label>
-                <Select 
-                  id="status" 
-                  value={status} 
-                  onChange={(e) => setStatus(e.target.value)}
-                  className={
-                    status === 'Pendente' ? 'border-yellow-500/50 text-yellow-500' :
-                    status === 'Concluído' ? 'border-green-500/50 text-green-500' :
-                    status === 'Cancelado' ? 'border-red-500/50 text-red-500' : ''
-                  }
-                >
-                  <option value="Pendente">Pendente</option>
-                  <option value="Processando">Processando</option>
-                  <option value="Concluído">Concluído</option>
-                  <option value="Cancelado">Cancelado</option>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="cliente">Cliente</Label>
-                <Select 
-                  id="cliente"
-                  value={clienteId}
-                  onChange={(e) => setClienteId(e.target.value)}
-                >
-                  <option value="" disabled>Selecione...</option>
-                  {clientesMock.map(c => (
-                    <option key={c.id} value={c.id}>{c.nome}</option>
-                  ))}
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="obs">Observações</Label>
-                <Textarea 
-                  id="obs"
-                  value={observacoes}
-                  onChange={(e) => setObservacoes(e.target.value)}
-                  className="h-32 resize-none"
-                />
-              </div>
-
-              <div className="border-t border-border my-4" />
-              <div className="flex flex-col gap-3">
-                <Button 
-                  type="submit" 
-                  disabled={isSaving}
-                  className="w-full h-12 text-base font-semibold shadow-md"
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-5 w-5" />
-                      Salvar Alterações
-                    </>
-                  )}
-                </Button>
-
+        <div className="flex items-center gap-3">
+            {/* BOTÃO CANCELAR/VOLTAR AJUSTADO */}
+            <Link href="/pedidos">
                 <Button 
                     type="button" 
-                    className="w-full bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white border-transparent transition-all"
-                    onClick={() => confirm("ATENÇÃO: Deseja realmente excluir este pedido permanentemente?") && console.log("Excluindo...")}
+                    className="bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white border-transparent transition-all"
                 >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Excluir Pedido
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Cancelar
                 </Button>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 flex gap-3 items-start">
-                <AlertCircle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
-                <p className="text-xs text-yellow-200/80">
-                    Alterar o status para <strong>Concluído</strong> irá baixar o estoque dos produtos automaticamente.
-                </p>
-            </div>
-
-          </div>
+            </Link>
+            
+            <Button 
+                onClick={handleSubmit} 
+                disabled={isSaving} 
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-md"
+            >
+                {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4"/> : <Save className="mr-2 h-4 w-4" />} 
+                Salvar Alterações
+            </Button>
         </div>
-      </form>
+      </div>
+
+      {/* --- GRID DE CONTEÚDO --- */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        
+        {/* COLUNA ESQUERDA (2/3): ITENS */}
+        <div className="lg:col-span-2 space-y-6">
+            
+            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+                <div className="border-b border-border bg-muted/30 px-6 py-4 flex justify-between items-center">
+                    <h2 className="font-semibold text-foreground flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        Itens do Pedido
+                    </h2>
+                </div>
+
+                {/* Área de Adicionar Produto */}
+                <div className="p-4 bg-muted/10 border-b border-border flex flex-col gap-4 md:flex-row md:items-end">
+                    <div className="flex-1 space-y-1">
+                        <Label className="text-xs">Adicionar Produto</Label>
+                        <Select 
+                            value={produtoSelecionadoId} 
+                            onChange={(e) => setProdutoSelecionadoId(e.target.value)}
+                            className="h-10"
+                        >
+                            <option value="" disabled>Selecione...</option>
+                            {produtos.map(p => (
+                                <option key={p.id_produto} value={p.id_produto}>
+                                    {p.nome} - {formatMoney(Number(p.preco))}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
+                    <div className="w-20 space-y-1">
+                        <Label className="text-xs">Qtd</Label>
+                        <Input 
+                            type="number" 
+                            min="1" 
+                            value={quantidade} 
+                            onChange={(e) => setQuantidade(Number(e.target.value))} 
+                            className="h-10"
+                        />
+                    </div>
+                    <Button 
+                        type="button" 
+                        onClick={handleAddItem} 
+                        disabled={!produtoSelecionadoId}
+                        className="h-10 px-4 !w-25"
+                    >
+                        <Plus className="mr-2 h-4 w-4" /> Add
+                    </Button>
+                </div>
+
+                {/* Tabela */}
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-muted/10 text-muted-foreground font-medium">
+                            <tr>
+                                <th className="px-6 py-3">Produto</th>
+                                <th className="px-6 py-3 text-center">Qtd</th>
+                                <th className="px-6 py-3 text-right">Unitário</th>
+                                <th className="px-6 py-3 text-right">Total</th>
+                                <th className="px-6 py-3 text-center w-10"></th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                            {itens.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                                        Nenhum item listado. Adicione acima para calcular o total.
+                                    </td>
+                                </tr>
+                            ) : (
+                                itens.map((item, idx) => (
+                                    <tr key={idx} className="hover:bg-muted/5">
+                                        <td className="px-6 py-4 font-medium text-foreground">{item.nome}</td>
+                                        <td className="px-6 py-4 text-center text-muted-foreground">{item.quantidade}</td>
+                                        <td className="px-6 py-4 text-right text-muted-foreground">{formatMoney(item.preco_unitario)}</td>
+                                        <td className="px-6 py-4 text-right font-medium text-foreground">{formatMoney(item.subtotal)}</td>
+                                        <td className="px-6 py-4 text-center">
+                                            <button 
+                                                onClick={() => handleRemoveItem(idx)} 
+                                                className="text-muted-foreground hover:text-red-500 transition-colors"
+                                                title="Remover item"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {/* Totais Footer */}
+                <div className="bg-muted/20 border-t border-border px-6 py-4">
+                    <div className="flex justify-end items-center gap-12">
+                        <span className="text-muted-foreground">Subtotal Calculado</span>
+                        <span className="text-xl font-bold text-primary">{formatMoney(valorTotalCalculado)}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Observações */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                 <h3 className="text-sm font-semibold text-foreground mb-2">Observações do Pedido</h3>
+                 <Textarea 
+                    value={observacoes} 
+                    onChange={(e) => setObservacoes(e.target.value)} 
+                    className="h-32 resize-none bg-muted/10 border-border focus:bg-background transition-colors"
+                    placeholder="Digite observações internas..."
+                 />
+            </div>
+        </div>
+
+        {/* COLUNA DIREITA (1/3): Dados Editáveis */}
+        <div className="space-y-6">
+            
+            {/* Card Cliente */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+                <div className="flex items-center gap-2 border-b border-border pb-3">
+                    <User className="h-5 w-5 text-primary" />
+                    <h2 className="font-semibold text-foreground">Cliente & Status</h2>
+                </div>
+                
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Label>Cliente</Label>
+                        <Select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
+                            {clientes.map(c => (
+                                <option key={c.id_cliente} value={c.id_cliente}>{c.nome_completo}</option>
+                            ))}
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Status Atual</Label>
+                        <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Processando">Processando</option>
+                            <option value="Concluído">Concluído</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </Select>
+                    </div>
+                </div>
+            </div>
+
+            {/* Card Resumo Financeiro */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+                <div className="flex items-center gap-2 border-b border-border pb-3">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                    <h2 className="font-semibold text-foreground">Resumo Financeiro</h2>
+                </div>
+                 <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Total Itens</span>
+                    <span className="text-foreground">{formatMoney(valorTotalCalculado)}</span>
+                 </div>
+                 <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Frete</span>
+                    <span className="text-foreground">R$ 0,00</span>
+                 </div>
+                 <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Desconto</span>
+                    <span className="text-green-500">- R$ 0,00</span>
+                 </div>
+                 <div className="border-t border-border pt-3 flex justify-between items-center">
+                    <span className="font-bold text-foreground">Total Final</span>
+                    <span className="font-bold text-xl text-primary">{formatMoney(valorTotalCalculado)}</span>
+                 </div>
+            </div>
+
+        </div>
+      </div>
     </div>
   );
 }
