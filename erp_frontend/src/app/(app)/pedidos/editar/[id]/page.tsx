@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Plus, Trash2, ShoppingCart, Loader2, Calendar, User, CreditCard, FileText } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Loader2, Calendar, User, CreditCard, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
@@ -11,7 +11,7 @@ import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import api from '../../../../../../services/api';
 
-// Interface do Item na memória (Carrinho)
+// Interface do Carrinho
 interface ItemCarrinho {
   id_produto: number;
   nome: string;
@@ -28,17 +28,17 @@ export default function EditarPedidoPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Dados Auxiliares (Listas para os Selects)
+  // Dados Auxiliares
   const [clientes, setClientes] = useState<any[]>([]);
   const [produtos, setProdutos] = useState<any[]>([]);
 
-  // Header do Pedido (Estados Editáveis)
+  // Header do Pedido
   const [clienteId, setClienteId] = useState('');
   const [status, setStatus] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [dataPedido, setDataPedido] = useState('');
   
-  // Itens (Carrinho)
+  // Itens
   const [itens, setItens] = useState<ItemCarrinho[]>([]);
   
   // Controle de Adição de Produto
@@ -63,7 +63,7 @@ export default function EditarPedidoPage() {
     }
   };
 
-  // 1. LOAD INICIAL
+  // LOAD INICIAL
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
@@ -197,7 +197,7 @@ export default function EditarPedidoPage() {
         </div>
         
         <div className="flex items-center gap-3">
-            {/* BOTÃO CANCELAR/VOLTAR AJUSTADO */}
+            {/* BOTÃO CANCELAR/VOLTAR */}
             <Link href="/pedidos">
                 <Button 
                     type="button" 
@@ -221,8 +221,6 @@ export default function EditarPedidoPage() {
 
       {/* --- GRID DE CONTEÚDO --- */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        
-        {/* COLUNA ESQUERDA (2/3): ITENS */}
         <div className="lg:col-span-2 space-y-6">
             
             <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
@@ -333,7 +331,6 @@ export default function EditarPedidoPage() {
             </div>
         </div>
 
-        {/* COLUNA DIREITA (1/3): Dados Editáveis */}
         <div className="space-y-6">
             
             {/* Card Cliente */}

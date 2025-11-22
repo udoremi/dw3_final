@@ -97,7 +97,6 @@ export default function NovoPedidoPage() {
         status: status,
         valor_total: valorTotalCalculado,
         observacoes: observacoes,
-        // IMPORTANTE: Enviando os itens para o backend salvar
         itens: itens 
     };
 
@@ -135,7 +134,7 @@ export default function NovoPedidoPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         
-        {/* ESQUERDA: CARRINHO DE COMPRAS */}
+        {/* CARRINHO DE COMPRAS */}
         <div className="lg:col-span-2 space-y-6">
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                 <div className="flex items-center gap-2 border-b border-border pb-4 mb-4">
@@ -209,7 +208,7 @@ export default function NovoPedidoPage() {
             </div>
         </div>
 
-        {/* DIREITA: DADOS DO PEDIDO (HEADER) */}
+        {/* DADOS DO PEDIDO */}
         <div className="space-y-6">
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-6">
                 <form onSubmit={handleSubmit} className="space-y-6">

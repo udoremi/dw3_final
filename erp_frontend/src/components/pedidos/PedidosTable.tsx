@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Eye, Pencil, Ban } from 'lucide-react';
+import { Eye, Ban } from 'lucide-react';
 
 export interface Pedido {
   id_pedido: number;
