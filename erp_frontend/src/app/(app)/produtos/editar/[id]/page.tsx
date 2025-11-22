@@ -8,13 +8,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
+import api from '../../../../../../services/api';
 
 export default function EditarProdutoPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id;
 
-  // --- ESTADOS ---
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -24,40 +24,6 @@ export default function EditarProdutoPage() {
   const [estoque, setEstoque] = useState('');
   const [ativo, setAtivo] = useState('true');
 
-  // --- CARREGAMENTO DE DADOS ---
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000)); 
-        
-        const produtoDoBanco = {
-          id: id,
-          nome: 'Teclado Mecânico RGB',
-          descricao: 'Switch Blue, ABNT2, Anti-ghosting',
-          preco: 259.90,
-          estoque: 15,
-          ativo: true
-        };
-
-        setNome(produtoDoBanco.nome);
-        setDescricao(produtoDoBanco.descricao);
-        setEstoque(produtoDoBanco.estoque.toString());
-        setAtivo(produtoDoBanco.ativo ? 'true' : 'false');
-        setPreco(formatarMoedaInicial(produtoDoBanco.preco));
-        
-      } catch (error) {
-        console.error("Erro", error);
-        router.push('/produtos');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (id) loadData();
-  }, [id, router]);
-
-  // --- UTILS ---
   const formatarMoedaInicial = (valor: number) => {
     return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
@@ -68,56 +34,98 @@ export default function EditarProdutoPage() {
     setPreco(numericValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
   };
 
-  const handleEstoqueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEstoque(e.target.value.replace(/\D/g, ''));
-  };
+  // LOAD
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        // Seu backend pede POST e id_produto no body
+        const response = await api.post('/getProdutoByID', { id_produto: id });
+        
+        if (response.data.status === "ok" && response.data.registro.length > 0) {
+            const prod = response.data.registro[0];
+            setNome(prod.nome);
+            setDescricao(prod.descricao);
+            setEstoque(prod.estoque_atual.toString()); // estoque_atual
+            setAtivo(prod.ativo ? 'true' : 'false');
+            setPreco(formatarMoedaInicial(Number(prod.preco))); // Garantir conversão para number
+        } else {
+            alert("Produto não encontrado");
+            router.push('/produtos');
+        }
+      } catch (error) {
+        console.error("Erro", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (id) loadData();
+  }, [id, router]);
 
-  // --- SUBMIT ---
+  // SUBMIT
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("Salvo!");
-    setIsSaving(false);
-    router.push('/produtos');
+
+    // Converter preço
+    const precoFormatado = Number(preco.replace(/[^0-9,-]+/g, "").replace(",", "."));
+
+    const payload = {
+        id_produto: id,
+        nome,
+        descricao,
+        preco: precoFormatado,
+        estoque_atual: Number(estoque),
+        ativo: ativo === 'true'
+    };
+
+    try {
+        const response = await api.post('/updateProdutos', payload);
+        if(response.data.status === "ok") {
+            alert("Salvo com sucesso!");
+            router.push('/produtos');
+        } else {
+            alert("Erro: " + response.data.status);
+        }
+    } catch(e) {
+        console.error(e);
+        alert("Erro ao atualizar.");
+    } finally {
+        setIsSaving(false);
+    }
   }
 
+  // DELETE
+  const handleDelete = async () => {
+    if(!confirm("Apagar produto?")) return;
+    try {
+        const response = await api.post('/deleteProdutos', { id_produto: id });
+        if(response.data.status === "ok") {
+            router.push('/produtos');
+        } else {
+            alert("Erro: " + response.data.status);
+        }
+    } catch(e) { console.error(e); alert("Erro ao deletar"); }
+  };
+
   if (isLoading) {
-    return (
-      <div className="flex h-[50vh] w-full items-center justify-center flex-col gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground">Carregando...</p>
-      </div>
-    );
+    return <div className="flex h-[50vh] justify-center items-center"><Loader2 className="animate-spin h-10 w-10 text-primary" /></div>;
   }
 
   return (
     <div className="flex w-full flex-col gap-6 pb-10">
-      
-      {/* Header */}
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Editar Produto
-          </h1>
-          <p className="text-muted-foreground">
-            Alterar informações do produto #{id}.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Editar Produto</h1>
+          <p className="text-muted-foreground">Alterar informações do produto #{id}.</p>
         </div>
-        
-        <Link href="/produtos" className="w-full md:w-auto">
-          <Button type="button" className="w-full md:w-auto bg-card border border-input text-foreground hover:bg-muted">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-          </Button>
-        </Link>
+        <Link href="/produtos"><Button type="button" className="bg-card border border-input text-foreground hover:bg-muted"><ArrowLeft className="mr-2 h-4 w-4" /> Voltar</Button></Link>
       </div>
 
-      {/* Formulário */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-8">
           
-          {/* Campos do Formulário */}
+          {/* Mesmos inputs da criação... */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 border-b border-border pb-2 mb-4">
               <Package className="h-5 w-5 text-primary" />
@@ -153,7 +161,7 @@ export default function EditarProdutoPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="estoque">Estoque</Label>
-                <Input id="estoque" value={estoque} onChange={handleEstoqueChange} />
+                <Input id="estoque" type="number" value={estoque} onChange={(e) => setEstoque(e.target.value)} />
               </div>
             </div>
           </div>
@@ -166,54 +174,29 @@ export default function EditarProdutoPage() {
             <Input id="descricao" value={descricao} onChange={(e) => setDescricao(e.target.value)} className="h-20" />
           </div>
 
+          {/* AÇÕES REFORMULADAS */}
           <div className="flex flex-col-reverse items-center justify-between gap-4 pt-6 border-t border-border mt-8 md:flex-row">
              
+             {/* ESQUERDA: Botão Excluir */}
              <Button 
                 type="button" 
                 className="w-full md:w-auto bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white border-transparent transition-all font-medium"
-                onClick={() => confirm("Tem certeza que deseja apagar este registro?") && console.log("Excluindo...")}
+                onClick={handleDelete}
              >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Excluir Produto
              </Button>
 
+             {/* DIREITA: Grupo Cancelar + Salvar */}
              <div className="flex flex-col-reverse w-full gap-4 md:w-auto md:flex-row md:items-center">
-                
-                {/* Cancelar */}
                 <Link href="/produtos" className="w-full md:w-auto">
-                    <Button 
-                        type="button" 
-                        className="
-                        w-full md:w-auto 
-                        bg-background 
-                        border-input 
-                        text-muted-foreground
-                        hover:bg-muted 
-                        hover:text-foreground
-                        font-medium
-                        "
-                    >
+                    <Button type="button" className="w-full md:w-auto bg-background border-input text-muted-foreground hover:bg-muted hover:text-foreground font-medium">
                         Cancelar
                     </Button>
                 </Link>
                 
-                {/* Salvar */}
-                <Button 
-                  type="submit" 
-                  disabled={isSaving}
-                  className="w-full md:min-w-[180px] font-semibold shadow-sm"
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Salvar Alterações
-                    </>
-                  )}
+                <Button type="submit" disabled={isSaving} className="w-full md:min-w-[180px] font-semibold shadow-sm">
+                  {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />} Salvar Alterações
                 </Button>
             </div>
           </div>

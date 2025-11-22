@@ -4,19 +4,18 @@ import Link from 'next/link';
 import { Pencil, Trash2 } from 'lucide-react';
 
 export interface Produto {
-  id: number;
+  id_produto: number;
   nome: string;
   descricao: string;
   preco: number;
-  estoque: number;
+  estoque_atual: number;
   ativo: boolean;
 }
 
-const produtosMock: Produto[] = [
-  { id: 1, nome: 'Monitor Dell 24"', descricao: 'Monitor Full HD IPS', preco: 1200.00, estoque: 15, ativo: true },
-  { id: 2, nome: 'Teclado Mecânico Logitech', descricao: 'Switch Blue, RGB', preco: 450.00, estoque: 8, ativo: true },
-  { id: 3, nome: 'Mouse Sem Fio', descricao: 'Ergonômico, pilha AA', preco: 89.90, estoque: 0, ativo: false },
-];
+interface ProdutosTableProps {
+  data: Produto[];
+  onDelete: (produto: Produto) => void;
+}
 
 function EstoqueBadge({ qtd }: { qtd: number }) {
   if (qtd === 0) {
@@ -39,11 +38,7 @@ function StatusBadge({ ativo }: { ativo: boolean }) {
   );
 }
 
-interface ProdutosTableProps {
-  onDelete: (produto: Produto) => void;
-}
-
-export function ProdutosTable({ onDelete }: ProdutosTableProps) {
+export function ProdutosTable({ data, onDelete }: ProdutosTableProps) {
   
   const formatMoney = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
@@ -62,46 +57,49 @@ export function ProdutosTable({ onDelete }: ProdutosTableProps) {
           </thead>
           
           <tbody className="divide-y divide-border">
-            {produtosMock.map((produto) => (
-              <tr key={produto.id} className="hover:bg-muted/50 transition-colors">
-                <td className="px-4 py-3 align-middle">
-                  <div className="flex flex-col">
-                    <span className="font-medium text-foreground">{produto.nome}</span>
-                    <span className="text-xs text-muted-foreground truncate max-w-[200px]">{produto.descricao}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 align-middle font-medium text-muted-foreground">
-                  {formatMoney(produto.preco)}
-                </td>
-                <td className="px-4 py-3 align-middle">
-                  <EstoqueBadge qtd={produto.estoque} />
-                </td>
-                <td className="px-4 py-3 align-middle">
-                  <StatusBadge ativo={produto.ativo} />
-                </td>
-                
-                {/* AÇÕES */}
-                <td className="px-4 py-3 align-middle text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Link
-                      href={`/produtos/editar/${produto.id}`}
-                      className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all"
-                      title="Editar"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Link>
+            {data.length === 0 ? (
+               <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Nenhum produto encontrado.</td></tr>
+            ) : (
+                data.map((produto) => (
+                <tr key={produto.id_produto} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-4 py-3 align-middle">
+                    <div className="flex flex-col">
+                        <span className="font-medium text-foreground">{produto.nome}</span>
+                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">{produto.descricao}</span>
+                    </div>
+                    </td>
+                    <td className="px-4 py-3 align-middle font-medium text-muted-foreground">
+                    {formatMoney(produto.preco)}
+                    </td>
+                    <td className="px-4 py-3 align-middle">
+                    <EstoqueBadge qtd={produto.estoque_atual} />
+                    </td>
+                    <td className="px-4 py-3 align-middle">
+                    <StatusBadge ativo={produto.ativo} />
+                    </td>
                     
-                    <button
-                      onClick={() => onDelete(produto)}
-                      className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:bg-danger/10 hover:text-danger hover:border-danger/20 transition-all"
-                      title="Excluir"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                    <td className="px-4 py-3 align-middle text-right">
+                    <div className="flex items-center justify-end gap-2">
+                        <Link
+                        href={`/produtos/editar/${produto.id_produto}`}
+                        className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all"
+                        title="Editar"
+                        >
+                        <Pencil className="h-4 w-4" />
+                        </Link>
+                        
+                        <button
+                        onClick={() => onDelete(produto)}
+                        className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:bg-danger/10 hover:text-danger hover:border-danger/20 transition-all"
+                        title="Excluir"
+                        >
+                        <Trash2 className="h-4 w-4" />
+                        </button>
+                    </div>
+                    </td>
+                </tr>
+                ))
+            )}
           </tbody>
         </table>
       </div>
