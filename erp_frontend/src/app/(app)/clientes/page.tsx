@@ -2,29 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Filter, Loader2 } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ClientesTable, Cliente } from '@/components/clientes/ClientesTable';
 import api from '../../../../services/api';
-import { FilterModal } from '@/components/ui/FilterModal';
 import { DeleteModal } from '@/components/ui/DeleteModal';
-import { Label } from '@/components/ui/Label';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
 
 export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Modais
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [clienteParaDeletar, setClienteParaDeletar] = useState<Cliente | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Estados de Filtro
-  const [filtroNome, setFiltroNome] = useState('');
-  const [filtroStatus, setFiltroStatus] = useState('');
 
   // --- BUSCAR CLIENTES ---
   const fetchClientes = async () => {
@@ -44,17 +35,6 @@ export default function ClientesPage() {
   useEffect(() => {
     fetchClientes();
   }, []);
-
-  // --- FILTRAR ---
-  const filteredClientes = clientes.filter(cliente => {
-    const matchesNome = cliente.nome_completo.toLowerCase().includes(filtroNome.toLowerCase());
-    const matchesStatus = filtroStatus === '' ? true : String(cliente.ativo) === filtroStatus;
-    return matchesNome && matchesStatus;
-  });
-
-  const handleApplyFilters = () => {
-    setIsFilterOpen(false);
-  };
 
   // --- EXCLUIR ---
   const handleOpenDeleteModal = (cliente: Cliente) => {
@@ -86,32 +66,7 @@ export default function ClientesPage() {
   return (
     <div className="flex w-full flex-col gap-6">
       
-      {/* Filtros */}
-      <FilterModal
-        isOpen={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        onApply={handleApplyFilters}
-        onClear={() => { setFiltroNome(''); setFiltroStatus(''); }}
-      >
-        <div className="space-y-2">
-            <Label>Nome ou Documento</Label>
-            <Input 
-                value={filtroNome}
-                onChange={(e) => setFiltroNome(e.target.value)}
-                placeholder="Digite para filtrar..." 
-            />
-        </div>
-        <div className="space-y-2">
-            <Label>Status</Label>
-            <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
-                <option value="">Todos</option>
-                <option value="true">Ativos</option>
-                <option value="false">Inativos</option>
-            </Select>
-        </div>
-      </FilterModal>
-
-      {/* Delete */}
+      {/* Delete Modal */}
       <DeleteModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
@@ -129,15 +84,6 @@ export default function ClientesPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button 
-            type="button"
-            onClick={() => setIsFilterOpen(true)}
-            className="gap-2 !bg-transparent !text-white hover:!bg-transparent hover:opacity-70 border-0 shadow-none px-0 h-auto w-auto"
-          >
-            <Filter className="h-4 w-4" />
-            <span className="text-sm font-medium">Filtros</span>
-          </Button>
-
           <Link href="/clientes/novo">
             <Button className="flex flex-row items-center gap-2 h-12 px-8 w-auto whitespace-nowrap text-base font-semibold">
               <Plus className="h-5 w-5" />
@@ -150,7 +96,7 @@ export default function ClientesPage() {
       {isLoading ? (
           <div className="flex justify-center py-10"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>
       ) : (
-          <ClientesTable data={filteredClientes} onDelete={handleOpenDeleteModal} />
+          <ClientesTable data={clientes} onDelete={handleOpenDeleteModal} />
       )}
       
     </div>

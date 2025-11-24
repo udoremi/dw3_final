@@ -10,18 +10,19 @@ import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
 import api from '../../../../../services/api';
 
-// Interfaces IBGE
 interface IBGEUF { id: number; sigla: string; nome: string; }
 interface IBGEMunicipio { id: number; nome: string; }
 
 export default function NovoClientePage() {
   const router = useRouter();
   
-  // --- ESTADOS ---
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Estados de Campos
   const [tipoPessoa, setTipoPessoa] = useState<'fisica' | 'juridica'>('fisica');
   const [documento, setDocumento] = useState('');
   const [cep, setCep] = useState('');
+  const [telefone, setTelefone] = useState('');
   
   // Dados IBGE
   const [ufs, setUfs] = useState<IBGEUF[]>([]);
@@ -45,7 +46,8 @@ export default function NovoClientePage() {
       .then((data) => { setCidades(data); setLoadingCidades(false); });
   }, [selectedUf]);
 
-  // Máscaras
+  // --- MÁSCARAS ---
+
   const handleDocumentoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, '');
     if (tipoPessoa === 'fisica') {
@@ -61,7 +63,24 @@ export default function NovoClientePage() {
     setCep(value);
   };
 
-  // SUBMIT
+  // MÁSCARA TELEFONE
+  const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    
+    // Remove tudo que não é número
+    value = value.replace(/\D/g, "");
+    
+    // Limita a 11 dígitos
+    value = value.substring(0, 11);
+
+    // Aplica a formatação
+    value = value.replace(/^(\d{2})(\d)/g, "($1) $2");
+    value = value.replace(/(\d)(\d{4})$/, "$1-$2");
+
+    setTelefone(value);
+  };
+
+  // --- SUBMIT ---
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
@@ -72,7 +91,7 @@ export default function NovoClientePage() {
         nome_completo: formData.get('nome_completo'),
         email: formData.get('email'),
         cpf_cnpj: documento,
-        telefone: formData.get('telefone'),
+        telefone: telefone,
         
         logradouro: formData.get('logradouro'),
         numero: formData.get('numero'),
@@ -82,9 +101,8 @@ export default function NovoClientePage() {
         uf: selectedUf,
         cep: cep,
 
-        // Dados de Sistema
         data_cadastro: new Date().toISOString(),
-        ativo: formData.get('ativo') === 'true'
+        ativo: true 
     };
 
     try {
@@ -137,15 +155,27 @@ export default function NovoClientePage() {
 
           {/* CONTATO */}
           <div className="space-y-4">
-             <div className="flex items-center gap-2 border-b border-border pb-2 mb-4"><Contact className="h-5 w-5 text-primary" /><h2 className="text-lg font-semibold text-foreground">Contato & Status</h2></div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+             <div className="flex items-center gap-2 border-b border-border pb-2 mb-4"><Contact className="h-5 w-5 text-primary" /><h2 className="text-lg font-semibold text-foreground">Contato</h2></div>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-2"><Label htmlFor="email">E-mail</Label><Input id="email" name="email" type="email" /></div>
-              <div className="space-y-2"><Label htmlFor="telefone">Telefone</Label><Input id="telefone" name="telefone" /></div>
-              <div className="space-y-2"><Label htmlFor="ativo">Status</Label><Select id="ativo" name="ativo" defaultValue="true"><option value="true">Ativo</option><option value="false">Inativo</option></Select></div>
+              
+              {/* INPUT TELEFONE */}
+              <div className="space-y-2">
+                <Label htmlFor="telefone">Telefone</Label>
+                <Input 
+                    id="telefone" 
+                    name="telefone" 
+                    value={telefone} 
+                    onChange={handleTelefoneChange} 
+                    maxLength={15} 
+                    placeholder="(00) 00000-0000" 
+                />
+              </div>
+            
             </div>
           </div>
 
-          {/* ENDEREÇO (Inputs nomeados corretamente para o form) */}
+          {/* ENDEREÇO */}
           <div className="space-y-4">
              <div className="flex items-center gap-2 border-b border-border pb-2 mb-4"><MapPin className="h-5 w-5 text-primary" /><h2 className="text-lg font-semibold text-foreground">Endereço</h2></div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[200px_1fr]">
@@ -165,8 +195,19 @@ export default function NovoClientePage() {
 
           {/* AÇÕES */}
           <div className="flex flex-col-reverse justify-end gap-4 pt-4 md:flex-row">
-            <Link href="/clientes"><Button type="button" className="bg-transparent border border-transparent text-slate-600 hover:bg-slate-100">Cancelar</Button></Link>
-            <Button type="submit" disabled={isSaving} className="min-w-[150px]">{isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />} Salvar</Button>
+            <Link href="/clientes">
+                <Button 
+                    type="button" 
+                    className="bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white border-transparent transition-all font-medium"
+                >
+                    Cancelar
+                </Button>
+            </Link>
+            
+            <Button type="submit" disabled={isSaving} className="min-w-[150px]">
+                {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />} 
+                Salvar
+            </Button>
           </div>
         </form>
       </div>

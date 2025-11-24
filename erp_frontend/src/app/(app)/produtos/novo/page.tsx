@@ -7,7 +7,6 @@ import { ArrowLeft, Save, Package, Tag, FileText, DollarSign, Loader2 } from 'lu
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
 import api from '../../../../../services/api';
 
 export default function NovoProdutoPage() {
@@ -18,7 +17,6 @@ export default function NovoProdutoPage() {
   const [descricao, setDescricao] = useState('');
   const [preco, setPreco] = useState('');
   const [estoque, setEstoque] = useState('');
-  const [ativo, setAtivo] = useState('true');
 
   // Formatação do preço
   const handlePrecoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,7 +37,7 @@ export default function NovoProdutoPage() {
         descricao,
         preco: precoFormatado,
         estoque_atual: Number(estoque),
-        ativo: ativo === 'true'
+        ativo: true // Fixo como ativo na criação
     };
 
     try {
@@ -70,26 +68,20 @@ export default function NovoProdutoPage() {
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-8">
           
+          {/* DADOS GERAIS */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 border-b border-border pb-2 mb-4">
               <Package className="h-5 w-5 text-primary" />
               <h2 className="text-lg font-semibold text-foreground">Dados Gerais</h2>
             </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="space-y-2">
+            
+            <div className="space-y-2">
                 <Label htmlFor="nome">Nome do Produto</Label>
                 <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="ativo">Status</Label>
-                <Select id="ativo" value={ativo} onChange={(e) => setAtivo(e.target.value)}>
-                  <option value="true">Ativo</option>
-                  <option value="false">Inativo</option>
-                </Select>
-              </div>
             </div>
           </div>
 
+          {/* VALORES */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 border-b border-border pb-2 mb-4">
               <Tag className="h-5 w-5 text-primary" />
@@ -110,6 +102,7 @@ export default function NovoProdutoPage() {
             </div>
           </div>
 
+          {/* DESCRIÇÃO */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 border-b border-border pb-2 mb-4">
                <FileText className="h-5 w-5 text-primary" />
@@ -120,8 +113,19 @@ export default function NovoProdutoPage() {
 
           {/* AÇÕES */}
           <div className="flex flex-col-reverse justify-end gap-4 pt-4 md:flex-row">
-            <Link href="/produtos"><Button type="button" className="bg-transparent border border-transparent text-slate-600 hover:bg-slate-100">Cancelar</Button></Link>
-            <Button type="submit" disabled={isSaving} className="min-w-[150px]">{isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />} Salvar</Button>
+            <Link href="/produtos">
+                <Button 
+                    type="button" 
+                    className="bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white border-transparent transition-all font-medium"
+                >
+                    Cancelar
+                </Button>
+            </Link>
+            
+            <Button type="submit" disabled={isSaving} className="min-w-[150px]">
+                {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />} 
+                Salvar
+            </Button>
           </div>
         </form>
       </div>

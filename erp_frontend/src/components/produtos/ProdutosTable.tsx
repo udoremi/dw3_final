@@ -27,17 +27,6 @@ function EstoqueBadge({ qtd }: { qtd: number }) {
   return <span className="text-xs font-medium text-green-500 bg-green-500/10 px-2 py-1 rounded-full">{qtd} unid.</span>;
 }
 
-function StatusBadge({ ativo }: { ativo: boolean }) {
-  const styles = ativo
-    ? 'bg-green-500/15 text-green-500 border-green-500/20'
-    : 'bg-gray-500/15 text-gray-500 border-gray-500/20';
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${styles}`}>
-      {ativo ? 'Ativo' : 'Inativo'}
-    </span>
-  );
-}
-
 export function ProdutosTable({ data, onDelete }: ProdutosTableProps) {
   
   const formatMoney = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -51,14 +40,16 @@ export function ProdutosTable({ data, onDelete }: ProdutosTableProps) {
               <th className="px-4 py-3 font-semibold text-muted-foreground">Produto</th>
               <th className="px-4 py-3 font-semibold text-muted-foreground">Preço</th>
               <th className="px-4 py-3 font-semibold text-muted-foreground">Estoque</th>
-              <th className="px-4 py-3 font-semibold text-muted-foreground">Status</th>
+              {/* Removido Status */}
               <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Ações</th>
             </tr>
           </thead>
           
           <tbody className="divide-y divide-border">
             {data.length === 0 ? (
-               <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Nenhum produto encontrado.</td></tr>
+               <tr>
+                   <td colSpan={4} className="p-8 text-center text-muted-foreground">Nenhum produto encontrado.</td>
+               </tr>
             ) : (
                 data.map((produto) => (
                 <tr key={produto.id_produto} className="hover:bg-muted/50 transition-colors">
@@ -73,9 +64,6 @@ export function ProdutosTable({ data, onDelete }: ProdutosTableProps) {
                     </td>
                     <td className="px-4 py-3 align-middle">
                     <EstoqueBadge qtd={produto.estoque_atual} />
-                    </td>
-                    <td className="px-4 py-3 align-middle">
-                    <StatusBadge ativo={produto.ativo} />
                     </td>
                     
                     <td className="px-4 py-3 align-middle text-right">
