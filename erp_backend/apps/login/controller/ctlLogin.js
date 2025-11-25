@@ -12,7 +12,7 @@ const Login = async (req, res, next) => {
         //auth ok
         const username = credencial[0].username;
         const token = jwt.sign({ username }, process.env.SECRET_API, {
-            expiresIn: 600, // expires in 10min
+            expiresIn: 1200, // expires in 20min
         });
         return res.json({ auth: true, token: token });
     }
