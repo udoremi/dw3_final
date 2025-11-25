@@ -148,7 +148,8 @@ export default function EditarPedidoPage() {
         data_pedido: dataPedido,
         status: status,
         valor_total: valorTotalCalculado,
-        observacoes: observacoes
+        observacoes: observacoes,
+        itens: itens
     };
 
     try {
