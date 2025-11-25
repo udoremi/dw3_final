@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Eye, Ban } from 'lucide-react';
+import { Eye, Pencil, Ban } from 'lucide-react';
 
 export interface Pedido {
   id_pedido: number;
@@ -23,7 +23,8 @@ function StatusBadge({ status }: { status: string }) {
     Pendente: 'bg-yellow-500/15 text-yellow-500 border-yellow-500/20',
     Concluído: 'bg-green-500/15 text-green-500 border-green-500/20',
     Cancelado: 'bg-red-500/15 text-red-500 border-red-500/20',
-  }[status] || 'bg-blue-500/15 text-blue-500 border-blue-500/20';
+    Processando: 'bg-blue-500/15 text-blue-500 border-blue-500/20',
+  }[status] || 'bg-gray-500/15 text-gray-500 border-gray-500/20';
 
   return (
     <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${styles}`}>
@@ -60,39 +61,52 @@ export function PedidosTable({ data, onCancel }: PedidosTableProps) {
             {data.length === 0 ? (
                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Nenhum pedido encontrado.</td></tr>
             ) : (
-                data.map((pedido) => (
-                <tr key={pedido.id_pedido} className="hover:bg-muted/50 transition-colors">
-                    <td className="px-4 py-3 align-middle font-mono text-xs text-muted-foreground">#{pedido.id_pedido}</td>
-                    <td className="px-4 py-3 align-middle font-medium text-foreground">{pedido.nome_completo}</td>
-                    <td className="px-4 py-3 align-middle text-muted-foreground">{formatDate(pedido.data_pedido)}</td>
-                    <td className="px-4 py-3 align-middle font-medium text-foreground">{formatMoney(pedido.valor_total)}</td>
-                    <td className="px-4 py-3 align-middle"><StatusBadge status={pedido.status} /></td>
-                    
-                    <td className="px-4 py-3 align-middle text-right">
-                    <div className="flex items-center justify-end gap-4">
+                data.map((pedido) => {
+                  const isFinalized = pedido.status === 'Concluído' || pedido.status === 'Cancelado';
+
+                  return (
+                    <tr key={pedido.id_pedido} className="hover:bg-muted/50 transition-colors">
+                        <td className="px-4 py-3 align-middle font-mono text-xs text-muted-foreground">#{pedido.id_pedido}</td>
+                        <td className="px-4 py-3 align-middle font-medium text-foreground">{pedido.nome_completo}</td>
+                        <td className="px-4 py-3 align-middle text-muted-foreground">{formatDate(pedido.data_pedido)}</td>
+                        <td className="px-4 py-3 align-middle font-medium text-foreground">{formatMoney(pedido.valor_total)}</td>
+                        <td className="px-4 py-3 align-middle"><StatusBadge status={pedido.status} /></td>
                         
-                        {/* Ver */}
-                        <Link 
-                        href={`/pedidos/editar/${pedido.id_pedido}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500 transition-all"
-                        title="Ver/Editar"
-                        >
-                        <Eye className="h-4 w-4" />
-                        </Link>
-                        
-                        {/* Cancelar */}
-                        <button 
-                        onClick={() => onCancel(pedido)} 
-                        disabled={pedido.status === 'Cancelado'}
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-red-500/10 hover:text-red-500 transition-all disabled:opacity-30"
-                        title="Cancelar Pedido"
-                        >
-                        <Ban className="h-4 w-4" />
-                        </button>
-                    </div>
-                    </td>
-                </tr>
-                ))
+                        <td className="px-4 py-3 align-middle text-right">
+                        <div className="flex items-center justify-end gap-4">
+                            
+                            <Link 
+                              href={`/pedidos/ver/${pedido.id_pedido}`} 
+                              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500 transition-all"
+                              title="Ver Detalhes"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                            
+                            {!isFinalized && (
+                                <Link 
+                                  href={`/pedidos/editar/${pedido.id_pedido}`} 
+                                  title="Editar Pedido" 
+                                  className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground hover:border-border transition-all"
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                </Link>
+                            )}
+
+                            {!isFinalized && (
+                                <button 
+                                  onClick={() => onCancel(pedido)} 
+                                  className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-red-500/10 hover:text-red-500 transition-all"
+                                  title="Cancelar Pedido"
+                                >
+                                  <Ban className="h-4 w-4" />
+                                </button>
+                            )}
+                        </div>
+                        </td>
+                    </tr>
+                  );
+                })
             )}
           </tbody>
         </table>
